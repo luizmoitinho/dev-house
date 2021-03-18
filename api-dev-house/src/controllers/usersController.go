@@ -5,6 +5,7 @@ import (
 	"api-dev-house/src/models"
 	"api-dev-house/src/repository"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var user models.Users
+	var user models.User
 	if err = json.Unmarshal(bodyRequest, &user); err != nil {
 		log.Fatal(err)
 	}
@@ -28,9 +29,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repository := repository.NewRepositoryUser(db)
-	Id, err : =repository.Insert(user)
-
-
+	Id, err := repository.Insert(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Write([]byte(fmt.Sprintf("id inserido: %d", Id)))
 }
 
 //GetUsers ... retorna todos os usuarios
