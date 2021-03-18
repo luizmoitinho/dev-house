@@ -11,13 +11,11 @@ import (
 )
 
 func main() {
-
 	config.Load()
+	router := router.GenerateRouter()
 
-	fmt.Println("connect to api-dev-house")
 	fmt.Printf("Listen on localhost: %d", config.Port)
 
-	router := router.GenerateRouter()
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), router))
 
 }
