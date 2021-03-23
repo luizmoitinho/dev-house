@@ -6,6 +6,7 @@ import (
 	"api-dev-house/src/repository"
 	"api-dev-house/src/responses"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
@@ -37,6 +38,25 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repository.NewRepositoryUser(db)
+
+	loginValid, err := repository.ExistLogin(user)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	} else if loginValid {
+		responses.Error(w, http.StatusBadRequest, errors.New("Login já existe na plataforma"))
+		return
+	}
+
+	emailValid, err := repository.ExistEmail(user)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	} else if emailValid {
+		responses.Error(w, http.StatusBadRequest, errors.New("E-mail já existe na plataforma"))
+		return
+	}
+
 	user.Id, err = repository.Insert(user)
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
