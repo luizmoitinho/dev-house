@@ -4,36 +4,41 @@ import (
 	"api-dev-house/src/database"
 	"api-dev-house/src/models"
 	"api-dev-house/src/repository"
+	"api-dev-house/src/responses"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 //CreateUser ... cadastrar um novo usuario
 func CreateUser(w http.ResponseWriter, r *http.Request) {
+	var user models.User
 	bodyRequest, err := ioutil.ReadAll(r.Body)
+
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
-	var user models.User
 	if err = json.Unmarshal(bodyRequest, &user); err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusBadRequest, err)
+		return
 	}
 
 	db, err := database.Connect()
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
 	}
+	defer db.Close()
 
 	repository := repository.NewRepositoryUser(db)
-	Id, err := repository.Insert(user)
+	user.Id, err = repository.Insert(user)
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
 	}
-	w.Write([]byte(fmt.Sprintf("id inserido: %d", Id)))
+
+	responses.JSON(w, http.StatusCreated, user)
+
 }
 
 //GetUsers ... retorna todos os usuarios
