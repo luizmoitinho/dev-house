@@ -3,6 +3,7 @@ package repository
 import (
 	"api-dev-house/src/models"
 	"database/sql"
+	"fmt"
 )
 
 //Users ...
@@ -36,6 +37,28 @@ func (u Users) Insert(user models.User) (int64, error) {
 	}
 
 	return lastInsertId, nil
+}
+
+//SearchByLoginOrName ... retorna todos os usuarios que atendem o filtro de nome ou login
+func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
+	loginOrName = fmt.Sprintf("%%%s%%", loginOrName)
+	query, err := u.db.Query("SELECT user_id, name, login FROM tb_users WHERE login LIKE ? OR name LIKE ? ORDER BY name, login asc", loginOrName, loginOrName)
+	if err != nil {
+		return nil, err
+	}
+	defer query.Close()
+
+	var users []models.User
+	for query.Next() {
+		var user models.User
+		if err := query.Scan(&user.Id, &user.Name, &user.Login); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+
 }
 
 //ExitsEmail ... verifica se existe um e-mail cadastrado

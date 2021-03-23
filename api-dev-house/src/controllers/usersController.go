@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 //CreateUser ... cadastrar um novo usuario
@@ -66,14 +67,30 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//GetUsers ... retorna todos os usuarios
-func GetUsers(w http.ResponseWriter, r *http.Request) {
+//GetUser ... retorna um usuario
+func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Buscando todos os usuários!"))
 }
 
-//GetUser ... retorna um usuario
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscar um usuário!"))
+//GetUsers ... retorna todos os usuarios
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+	loginOrName := strings.ToLower(r.URL.Query().Get("user"))
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryUser(db)
+
+	users, err := repository.SearchByLoginOrName(loginOrName)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+	}
+
+	responses.JSON(w, http.StatusOK, users)
+
 }
 
 //UpdateUser ... atualiza dados de um usuario
