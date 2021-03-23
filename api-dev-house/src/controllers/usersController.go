@@ -9,7 +9,10 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 //CreateUser ... cadastrar um novo usuario
@@ -61,6 +64,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.Id, err = repository.Insert(user)
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	responses.JSON(w, http.StatusCreated, user)
@@ -69,7 +73,32 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 //GetUser ... retorna um usuario
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscando todos os usuários!"))
+	params := mux.Vars(r)
+	userID, err := strconv.ParseInt(params["id"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryUser(db)
+	user, err := repository.GetUserById(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	if user.Id == 0 {
+		responses.Error(w, http.StatusNotFound, errors.New("Usuarios não encontrado"))
+		return
+	}
+	responses.JSON(w, http.StatusOK, user)
+
 }
 
 //GetUsers ... retorna todos os usuarios
@@ -79,6 +108,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	db, err := database.Connect()
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 	defer db.Close()
 
@@ -87,6 +117,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := repository.SearchByLoginOrName(loginOrName)
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	responses.JSON(w, http.StatusOK, users)

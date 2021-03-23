@@ -39,6 +39,26 @@ func (u Users) Insert(user models.User) (int64, error) {
 	return lastInsertId, nil
 }
 
+func (u Users) GetUserById(id int64) (models.User, error) {
+	query, err := u.db.Query("SELECT user_id, name, login, email, created_at FROM tb_users WHERE user_id = ?", id)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer query.Close()
+
+	if query.Next() {
+		var user models.User
+		err = query.Scan(&user.Id, &user.Name, &user.Login, &user.Email, &user.CreatedAt)
+		if err != nil {
+			return models.User{}, err
+		}
+		return user, nil
+	}
+
+	return models.User{}, nil
+
+}
+
 //SearchByLoginOrName ... retorna todos os usuarios que atendem o filtro de nome ou login
 func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
 	loginOrName = fmt.Sprintf("%%%s%%", loginOrName)
