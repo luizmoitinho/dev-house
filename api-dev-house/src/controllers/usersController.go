@@ -30,7 +30,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.Prepare(); err != nil {
+	if err := user.Prepare(true); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := validateUniqueDataUser(user, true); err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
 	}
@@ -42,24 +47,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repository.NewRepositoryUser(db)
-
-	loginValid, err := repository.ExistLogin(user)
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	} else if loginValid {
-		responses.Error(w, http.StatusBadRequest, errors.New("Login já existe na plataforma"))
-		return
-	}
-
-	emailValid, err := repository.ExistEmail(user)
-	if err != nil {
-		responses.Error(w, http.StatusInternalServerError, err)
-		return
-	} else if emailValid {
-		responses.Error(w, http.StatusBadRequest, errors.New("E-mail já existe na plataforma"))
-		return
-	}
 
 	user.Id, err = repository.Insert(user)
 	if err != nil {
@@ -126,10 +113,85 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 //UpdateUser ... atualiza dados de um usuario
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Atualizar usuário!"))
+	params := mux.Vars(r)
+	userID, err := strconv.ParseInt(params["id"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	bodyRequest, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var user models.User
+	if err := json.Unmarshal(bodyRequest, &user); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := user.Prepare(false); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	user.Id = userID
+	if err := validateUniqueDataUser(user, false); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryUser(db)
+	if err = repository.UpdateUser(userID, user); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+
 }
 
 //UpdateUser ... remove um usuario
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Remover usuário!"))
+}
+
+func validateUniqueDataUser(user models.User, isCreateUser bool) error {
+
+	db, err := database.Connect()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryUser(db)
+	if err != nil {
+		return err
+	}
+
+	loginValid, err := repository.ExistLogin(user, isCreateUser)
+	if err != nil {
+		return err
+	} else if loginValid {
+		return errors.New("Login já existe na plataforma")
+	}
+
+	emailValid, err := repository.ExistEmail(user, isCreateUser)
+	if err != nil {
+		return err
+	} else if emailValid {
+		return errors.New("E-mail já existe na plataforma")
+	}
+
+	return nil
+
 }

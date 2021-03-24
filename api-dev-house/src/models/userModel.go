@@ -17,15 +17,15 @@ type User struct {
 }
 
 //Prepare ... chama métodos para validar e formatar dados do usuário a ser inserido.
-func (u *User) Prepare() error {
-	if err := u.validate(); err != nil {
+func (u *User) Prepare(isCreateUser bool) error {
+	if err := u.validate(isCreateUser); err != nil {
 		return err
 	}
 	u.format()
 	return nil
 }
 
-func (u *User) validate() error {
+func (u *User) validate(isCreateUser bool) error {
 
 	if u.Name == "" {
 		return errors.New("Campo Nome é obrigatório")
@@ -36,7 +36,7 @@ func (u *User) validate() error {
 	if u.Email == "" {
 		return errors.New("Campo Email é obrigatório")
 	}
-	if u.Password == "" {
+	if isCreateUser && u.Password == "" {
 		return errors.New("Campo Senha é obrigatório")
 	}
 

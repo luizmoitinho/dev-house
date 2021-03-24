@@ -39,6 +39,7 @@ func (u Users) Insert(user models.User) (int64, error) {
 	return lastInsertId, nil
 }
 
+//GetUserById ... retorna um usuário com base no id
 func (u Users) GetUserById(id int64) (models.User, error) {
 	query, err := u.db.Query("SELECT user_id, name, login, email, created_at FROM tb_users WHERE user_id = ?", id)
 	if err != nil {
@@ -56,6 +57,22 @@ func (u Users) GetUserById(id int64) (models.User, error) {
 	}
 
 	return models.User{}, nil
+
+}
+
+//UpdateUser ... atualiza dados de um usuário
+func (u Users) UpdateUser(id int64, user models.User) error {
+	stm, err := u.db.Prepare("UPDATE tb_users set name = ?, email= ?, login = ? WHERE user_id = ?")
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err := stm.Exec(user.Name, user.Email, user.Login, id); err != nil {
+		return err
+	}
+
+	return nil
 
 }
 
@@ -82,8 +99,17 @@ func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
 }
 
 //ExitsEmail ... verifica se existe um e-mail cadastrado
-func (u Users) ExistEmail(user models.User) (bool, error) {
-	query, err := u.db.Query("SELECT user_id from tb_users where email = ?", user.Email)
+func (u Users) ExistEmail(user models.User, isCreatedUser bool) (bool, error) {
+	var (
+		query *sql.Rows
+		err   error
+	)
+
+	if isCreatedUser {
+		query, err = u.db.Query("SELECT user_id from tb_users where email = ?", user.Email)
+	} else {
+		query, err = u.db.Query("SELECT user_id from tb_users where email = ? AND user_id != ?", user.Email, user.Id)
+	}
 	if err != nil {
 		return false, err
 	}
@@ -105,8 +131,18 @@ func (u Users) ExistEmail(user models.User) (bool, error) {
 }
 
 //ExitsEmail ... verifica se existe um e-mail cadastrado
-func (u Users) ExistLogin(user models.User) (bool, error) {
-	query, err := u.db.Query("SELECT user_id FROM tb_users WHERE login = ?", user.Login)
+func (u Users) ExistLogin(user models.User, isCreatedUser bool) (bool, error) {
+	var (
+		query *sql.Rows
+		err   error
+	)
+
+	if isCreatedUser {
+		query, err = u.db.Query("SELECT user_id FROM tb_users WHERE login = ?", user.Login)
+	} else {
+		query, err = u.db.Query("SELECT user_id from tb_users where login = ? AND user_id != ?", user.Login, user.Id)
+	}
+
 	if err != nil {
 		return false, err
 	}

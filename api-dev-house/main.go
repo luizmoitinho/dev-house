@@ -10,6 +10,7 @@ import (
 	"api-dev-house/src/config"
 )
 
+
 func main() {
 	config.Load()
 	router := router.GenerateRouter()
