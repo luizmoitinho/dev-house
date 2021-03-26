@@ -1,6 +1,7 @@
 package models
 
 import (
+	"api-dev-house/src/security"
 	"errors"
 	"strings"
 	"time"
@@ -23,7 +24,10 @@ func (u *User) Prepare(isCreateUser bool) error {
 	if err := u.validate(isCreateUser); err != nil {
 		return err
 	}
-	u.format()
+
+	if err := u.format(isCreateUser); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -48,9 +52,20 @@ func (u *User) validate(isCreateUser bool) error {
 	return nil
 }
 
-func (u *User) format() {
+func (u *User) format(isCreateUser bool) error {
+
 	u.Name = strings.TrimSpace(u.Name)
 	u.Login = strings.TrimSpace(u.Login)
 	u.Email = strings.TrimSpace(u.Email)
+
+	if isCreateUser {
+		passwordHash, err := security.Hash(u.Password)
+		if err != nil {
+			return err
+		}
+		u.Password = string(passwordHash)
+
+	}
+	return nil
 
 }
