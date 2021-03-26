@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/badoux/checkmail"
 )
 
 //User .., dados de um usuario
@@ -35,7 +37,10 @@ func (u *User) validate(isCreateUser bool) error {
 	}
 	if u.Email == "" {
 		return errors.New("Campo Email é obrigatório")
+	} else if err := checkmail.ValidateFormat(u.Email); err != nil {
+		return errors.New("Email informado é inválido")
 	}
+
 	if isCreateUser && u.Password == "" {
 		return errors.New("Campo Senha é obrigatório")
 	}
