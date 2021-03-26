@@ -76,6 +76,21 @@ func (u Users) UpdateUser(id int64, user models.User) error {
 
 }
 
+//DeleteUser ... remove dados de um usário
+func (u Users) DeleteUser(id int64) error {
+	stm, err := u.db.Prepare("DELETE FROM tb_users WHERE user_id = ?")
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err := stm.Exec(id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //SearchByLoginOrName ... retorna todos os usuarios que atendem o filtro de nome ou login
 func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
 	loginOrName = fmt.Sprintf("%%%s%%", loginOrName)
