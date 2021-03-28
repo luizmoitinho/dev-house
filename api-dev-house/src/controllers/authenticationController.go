@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"api-dev-house/src/authentication"
 	"api-dev-house/src/database"
 	"api-dev-house/src/models"
 	"api-dev-house/src/repository"
@@ -44,6 +45,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Status: Logado"))
+	token, _ := authentication.GenerateToken(userDB.Id)
+	w.Write([]byte(token))
 
 }
