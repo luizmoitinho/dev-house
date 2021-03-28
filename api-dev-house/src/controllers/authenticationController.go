@@ -5,6 +5,7 @@ import (
 	"api-dev-house/src/models"
 	"api-dev-house/src/repository"
 	"api-dev-house/src/responses"
+	"api-dev-house/src/security"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -32,12 +33,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repository.NewRepositoryUser(db)
-	user.Id, err = repository.Login(user)
+	userDB, err := repository.SearchByEmail(user)
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	responses.JSON(w, http.StatusCreated, user)
+	if err := security.ComparePasswords(userDB.Password, user.Password); err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	w.Write([]byte("Status: Logado"))
 
 }

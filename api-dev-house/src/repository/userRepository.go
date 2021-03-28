@@ -94,7 +94,7 @@ func (u Users) DeleteUser(id int64) error {
 //SearchByLoginOrName ... retorna todos os usuarios que atendem o filtro de nome ou login
 func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
 	loginOrName = fmt.Sprintf("%%%s%%", loginOrName)
-	query, err := u.db.Query("SELECT user_id, name, login FROM tb_users WHERE login LIKE ? OR name LIKE ? ORDER BY name, login asc", loginOrName, loginOrName)
+	query, err := u.db.Query("SELECT user_id, name, email, login FROM tb_users WHERE login LIKE ? OR name LIKE ? ORDER BY name, login asc", loginOrName, loginOrName)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
 	var users []models.User
 	for query.Next() {
 		var user models.User
-		if err := query.Scan(&user.Id, &user.Name, &user.Login); err != nil {
+		if err := query.Scan(&user.Id, &user.Name, &user.Email, &user.Login); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -111,6 +111,22 @@ func (u Users) SearchByLoginOrName(loginOrName string) ([]models.User, error) {
 
 	return users, nil
 
+}
+
+func (u *Users) SearchByEmail(user models.User) (models.User, error) {
+	query, err := u.db.Query("SELECT user_id, password FROM tb_users WHERE email = ?", user.Email)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	var userData models.User
+	if query.Next() {
+		if err := query.Scan(&userData.Id, &userData.Password); err != nil {
+			return models.User{}, err
+		}
+	}
+
+	return userData, nil
 }
 
 //ExitsEmail ... verifica se existe um e-mail cadastrado
