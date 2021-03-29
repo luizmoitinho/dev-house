@@ -4,7 +4,10 @@ import (
 	"api-dev-house/src/config"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"log"
+	"net/http"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -27,5 +30,34 @@ func generateSecretKey() string {
 	}
 
 	return base64.StdEncoding.EncodeToString(key)
+
+}
+
+//ValidateToken ... verifica se o token passado na requisição é válido
+func ValidateToken(r *http.Request) error {
+	tokenString := extractToken(r)
+	token, err := jwt.Parse(tokenString, getVerificateKey)
+	if err != nil {
+		return err
+	}
+	fmt.Println(token)
+	return nil
+}
+
+func extractToken(r *http.Request) string {
+	token := r.Header.Get("Autorizathion")
+	if len(strings.Split(token, " ")) == 2 {
+		return strings.Split(token, " ")[1]
+	}
+
+	return ""
+
+}
+
+func getVerificateKey(token *jwt.Token) (interface{}, error) {
+	if _, status := token.Method.((*jwt.SigningMethodHMAC)); !status {
+		return nil, fmt.Errorf("Método de assinatura inesperado! %v", token.Header["alg"])
+	}
+	return config.SecretKey, nil
 
 }
