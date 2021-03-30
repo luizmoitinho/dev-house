@@ -4,6 +4,7 @@ import (
 	"api-dev-house/src/config"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -40,8 +41,11 @@ func ValidateToken(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(token)
-	return nil
+	if _, ok := token.Claims.(jwt.Claims); ok && token.Valid {
+		return nil
+	}
+
+	return errors.New("token inválido")
 }
 
 func extractToken(r *http.Request) string {
