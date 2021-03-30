@@ -45,7 +45,7 @@ func ValidateToken(r *http.Request) error {
 }
 
 func extractToken(r *http.Request) string {
-	token := r.Header.Get("Autorizathion")
+	token := r.Header.Get("Authorization")
 	if len(strings.Split(token, " ")) == 2 {
 		return strings.Split(token, " ")[1]
 	}
@@ -55,7 +55,7 @@ func extractToken(r *http.Request) string {
 }
 
 func getVerificateKey(token *jwt.Token) (interface{}, error) {
-	if _, status := token.Method.((*jwt.SigningMethodHMAC)); !status {
+	if _, status := token.Method.(*jwt.SigningMethodHMAC); !status {
 		return nil, fmt.Errorf("Método de assinatura inesperado! %v", token.Header["alg"])
 	}
 	return config.SecretKey, nil
