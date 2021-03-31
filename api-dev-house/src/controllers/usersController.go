@@ -8,7 +8,6 @@ import (
 	"api-dev-house/src/responses"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -124,11 +123,13 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	userIDToken, err := authentication.ExtractUserId(r)
 	if err != nil {
-		responses.Error(w, http.StatusUnauthorized, err)
+		responses.Error(w, http.StatusUnauthorized, errors.New("não é possível atualizar usuário de terceiros"))
 		return
 	}
 
-	fmt.Println(userIDToken)
+	if userIDToken != userID {
+		responses.Error(w, http.StatusForbidden, &json.SyntaxError{})
+	}
 
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {

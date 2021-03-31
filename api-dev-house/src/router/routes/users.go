@@ -11,7 +11,7 @@ var userRoutes = []Route{
 		URI:           "/users",
 		Method:        http.MethodPost,
 		MethodRequest: controllers.CreateUser,
-		Authorization: true,
+		Authorization: false,
 	},
 	{
 		URI:           "/users",
