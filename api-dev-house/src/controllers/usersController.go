@@ -123,12 +123,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	userIDToken, err := authentication.ExtractUserId(r)
 	if err != nil {
-		responses.Error(w, http.StatusUnauthorized, errors.New("não é possível atualizar usuário de terceiros"))
+		responses.Error(w, http.StatusUnauthorized, err)
 		return
 	}
 
 	if userIDToken != userID {
-		responses.Error(w, http.StatusForbidden, &json.SyntaxError{})
+		responses.Error(w, http.StatusForbidden, errors.New("não é possível atualizar usuário de terceiros"))
 	}
 
 	bodyRequest, err := ioutil.ReadAll(r.Body)
