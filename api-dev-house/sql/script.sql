@@ -5,7 +5,7 @@ USE devhouse;
 DROP TABLE IF EXISTS tb_users;
 DROP TABLE IF EXISTS tb_followers;
 
-
+ 
 CREATE TABLE tb_users(
   user_id INT auto_increment PRIMARY KEY,
   name VARCHAR(250) NOT NULL,
