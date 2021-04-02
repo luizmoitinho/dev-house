@@ -1,6 +1,6 @@
-package model
+package models
 
 type Follow struct {
-	user_id int `json:user`,
-	user_id int `json:follower`
+	User_id     int `json:"user"`
+	Follower_id int `json:"follower"`
 }

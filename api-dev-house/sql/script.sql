@@ -17,7 +17,7 @@ CREATE TABLE tb_users(
 
 CREATE TABLE tb_followers(
  user_id INT NOT NULL, 
- follower_id INT NOT NULL
+ following_id INT NOT NULL
 )ENGINE=INNODB;
 
 ALTER TABLE tb_followers ADD CONSTRAINT FK_followers_users_1
@@ -25,7 +25,7 @@ ALTER TABLE tb_followers ADD CONSTRAINT FK_followers_users_1
 
 
 ALTER TABLE tb_followers ADD CONSTRAINT FK_followers_users_2
-  FOREIGN KEY (follower_id) REFERENCES tb_users(user_id) ON DELETE CASCADE;
+  FOREIGN KEY (following_id) REFERENCES tb_users(user_id) ON DELETE CASCADE;
 
 ALTER TABLE tb_followers ADD CONSTRAINT PK_followers
-  PRIMARY KEY(user_id, follower_id);
+  PRIMARY KEY(user_id, following_id);

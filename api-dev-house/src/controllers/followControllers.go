@@ -3,6 +3,7 @@ package controllers
 import (
 	"api-dev-house/src/authentication"
 	"api-dev-house/src/database"
+	"api-dev-house/src/repository"
 	"api-dev-house/src/responses"
 	"errors"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 
 //Follow ... permite que um usuário siga outro
 func Follow(w http.ResponseWriter, r *http.Request) {
-	userFollowedID, err := authentication.ExtractUserId(r)
+	followingID, err := authentication.ExtractUserId(r)
 	if err != nil {
 		responses.Error(w, http.StatusUnauthorized, err)
 		return
@@ -26,7 +27,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userID == userFollowedID {
+	if userID == followingID {
 		responses.Error(w, http.StatusForbidden, errors.New("não é possivel seguir você mesmo"))
 		return
 	}
@@ -39,5 +40,13 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repository.NewRepositoryFollow(db)
+
+	if err := repository.Follow(userID, followingID); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+	return
 
 }

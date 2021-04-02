@@ -38,9 +38,9 @@ var userRoutes = []Route{
 		Authorization: true,
 	},
 	{
-		URI:            "users/{id}/seguir",
-		Method:         http.MethodPost,
-		MethodRequest:  controllers.Follow,
-		Authorizathion: true,
+		URI:           "/users/{id}/follow",
+		Method:        http.MethodPost,
+		MethodRequest: controllers.Follow,
+		Authorization: true,
 	},
 }
