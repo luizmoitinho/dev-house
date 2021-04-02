@@ -37,4 +37,10 @@ var userRoutes = []Route{
 		MethodRequest: controllers.DeleteUser,
 		Authorization: true,
 	},
+	{
+		URI:            "users/{id}/seguir",
+		Method:         http.MethodPost,
+		MethodRequest:  controllers.Follow,
+		Authorizathion: true,
+	},
 }
