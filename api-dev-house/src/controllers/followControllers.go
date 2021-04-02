@@ -40,6 +40,15 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repository.NewRepositoryFollow(db)
+	isFollow, err := repository.IsFollow(userID, followingID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+	}
+
+	if isFollow {
+		responses.Error(w, http.StatusAccepted, errors.New("usário já está sendo seguido"))
+		return
+	}
 
 	if err := repository.Follow(userID, followingID); err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)

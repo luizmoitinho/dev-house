@@ -28,7 +28,7 @@ func (f *Follow) Follow(userID, followingID int64) error {
 	return nil
 }
 
-func (f *Follow) isFollow(userID, followingID int64) (bool, error) {
+func (f *Follow) IsFollow(userID, followingID int64) (bool, error) {
 	query, err := f.db.Query("SELECT true FROM tb_followers WHERE user_id = ? AND following_id = ? ", userID, followingID)
 	if err != nil {
 		return false, err
