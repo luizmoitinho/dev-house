@@ -7,15 +7,21 @@ import (
 
 var followRoutes = []Route{
 	{
-		URI:           "/users/{id}/follow",
+		URI:           "/follow/{id}",
 		Method:        http.MethodPost,
 		MethodRequest: controllers.Follow,
 		Authorization: true,
 	},
 	{
-		URI:           "/users/{id}/unfollow",
+		URI:           "/unfollow/{id}",
 		Method:        http.MethodPost,
 		MethodRequest: controllers.UnFollow,
+		Authorization: true,
+	},
+	{
+		URI:           "/followers/{id}",
+		Method:        http.MethodGet,
+		MethodRequest: controllers.GetFollowers,
 		Authorization: true,
 	},
 }
