@@ -192,3 +192,36 @@ func (u Users) ExistLogin(user models.User, isCreatedUser bool) (bool, error) {
 	return true, nil
 
 }
+
+//GetPasswordByUserID ... retorna a senha de um usuario pelo ID
+func (u *Users) GetPasswordByUserID(userID int64) (string, error) {
+	query, err := u.db.Query("SELECT password FROM tb_users WHERE user_id = ?", userID)
+	if err != nil {
+		return "", err
+	}
+	defer query.Close()
+
+	var user models.User
+	if query.Next() {
+		if err := query.Scan(&user.Password); err != nil {
+			return "", nil
+		}
+	}
+	return user.Password, nil
+}
+
+//UpdatePassword ... atualiza senha do usuario
+func (u *Users) UpdatePassword(userID int64, password string) error {
+	stm, err := u.db.Prepare("UPDATE tb_users SET password = ? WHERE user_id = ?")
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err := stm.Exec(password, userID); err != nil {
+		return err
+	}
+
+	return nil
+
+}

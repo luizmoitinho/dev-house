@@ -6,6 +6,7 @@ import (
 	"api-dev-house/src/models"
 	"api-dev-house/src/repository"
 	"api-dev-house/src/responses"
+	"api-dev-house/src/security"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -208,6 +209,67 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.JSON(w, http.StatusNoContent, nil)
+}
+
+//UpdatePassord ... altera senha de um usuário
+
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userIDToken, err := authentication.ExtractUserId(r)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	userID, err := strconv.ParseInt(params["id"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if userIDToken != userID {
+		responses.Error(w, http.StatusForbidden, errors.New("não é possível alterar senha de terceiros"))
+		return
+	}
+
+	bodyRequest, err := ioutil.ReadAll(r.Body)
+	var password models.Password
+	if err := json.Unmarshal(bodyRequest, &password); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryUser(db)
+	passwordSaved, err := repository.GetPasswordByUserID(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := security.ComparePasswords(passwordSaved, password.OldPassword); err != nil {
+		responses.Error(w, http.StatusUnauthorized, errors.New("senha atual informada está incorreta"))
+		return
+	}
+
+	passwordHash, err := security.Hash(password.NewPassword)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := repository.UpdatePassword(userID, string(passwordHash)); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, nil)
 }
 
 func validateUniqueDataUser(user models.User, isCreateUser bool) error {
