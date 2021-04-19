@@ -1,8 +1,11 @@
 package routes
 
-import "net/http"
+import (
+	"api-dev-house/src/controllers"
+	"net/http"
+)
 
-var PostsRoutes = []Route{
+var postsRoutes = []Route{
 	{
 		URI:           "/posts",
 		Method:        http.MethodPost,
