@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-//Users ...
+//Users ... repository de Users
 type Users struct {
 	db *sql.DB
 }

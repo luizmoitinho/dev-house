@@ -1,9 +1,54 @@
 package controllers
 
-import "net/http"
+import (
+	"api-dev-house/src/authentication"
+	"api-dev-house/src/database"
+	"api-dev-house/src/models"
+	"api-dev-house/src/repository"
+	"api-dev-house/src/responses"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+)
 
 //CreatePost ... adiciona uma nova publicacao
-func CreatePost(w http.ResponseWriter, r *http.Request) {}
+func CreatePost(w http.ResponseWriter, r *http.Request) {
+	userID, err := authentication.ExtractUserId(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	bodyRequest, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var post models.Post
+	if err = json.Unmarshal(bodyRequest, &post); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	post.AuthorID = userID
+	repository := repository.NewRepositoryPosts(db)
+	post.Id, err = repository.Insert(post)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusCreated, post)
+
+}
 
 //GetPosts ... exibe posts no feed do user
 func GetPosts(w http.ResponseWriter, r *http.Request) {}
