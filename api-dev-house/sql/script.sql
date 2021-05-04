@@ -4,6 +4,7 @@ USE devhouse;
 
 DROP TABLE IF EXISTS tb_users;
 DROP TABLE IF EXISTS tb_followers;
+DROP TABLE IF EXISTS tb_posts;
 
  
 CREATE TABLE tb_users(
@@ -31,9 +32,10 @@ ALTER TABLE tb_followers ADD CONSTRAINT PK_followers
   PRIMARY KEY(user_id, following_id);
 
 
+
 CREATE TABLE tb_posts(
   post_id INT AUTO_INCREMENT PRIMARY KEY,
-  titulo varchar(50) NOT NULL,
+  title varchar(50) NOT NULL,
   content varchar(450) not null,
   author_id int not null,
   likes int default 0,
@@ -43,4 +45,4 @@ CREATE TABLE tb_posts(
 
 
 ALTER TABLE tb_posts ADD CONSTRAINT FK_posts_users
-  FOREIGN KEY (author_id) REFERENCES tb_users(user_id)
+  FOREIGN KEY (author_id) REFERENCES tb_users(user_id);
