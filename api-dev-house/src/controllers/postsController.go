@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 //CreatePost ... adiciona uma nova publicacao
@@ -60,7 +63,31 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 func GetPosts(w http.ResponseWriter, r *http.Request) {}
 
 //GetPost ... exibe uma publicação espeficica
-func GetPost(w http.ResponseWriter, r *http.Request) {}
+func GetPost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	postID, err := strconv.ParseInt(params["id"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryPosts(db)
+	post, err := repository.GetByID(postID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, post)
+
+}
 
 //UpdatePost ... atualiza uma publicação
 func UpdatePost(w http.ResponseWriter, r *http.Request) {}
