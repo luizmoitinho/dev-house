@@ -74,8 +74,8 @@ func (p Posts) GetPosts(userID int64) ([]models.Post, error){
 															INNER JOIN tb_users as u
 																ON p.author_id = u.user_id
 															INNER JOIN tb_followers as f
-																ON f.user_id = p.author_id
-														 WHERE u.user_id = ? OR f.following_id = ?;`, userID, userID)
+																ON f.user_id = p.author_id OR f.following_id = p.author_id
+														 WHERE u.user_id = ? OR u.user_id = f.user_id;`, userID)
 	
 	if err != nil{
 		return  nil, err
