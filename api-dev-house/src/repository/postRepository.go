@@ -66,3 +66,30 @@ func (p Posts) GetByID(postID int64) (models.Post, error) {
 	return post, nil
 
 }
+
+//GetPosts ... busca os seus pots e das pessaos que a pessoa segue
+func (p Posts) GetPosts(userID int64) ([]models.Post, error){
+	query, err := p.db.Query(`SELECT p.*, u.login 
+														FROM tb_posts as p
+															INNER JOIN tb_users as u
+																ON p.author_id = u.user_id
+															INNER JOIN tb_followers as f
+																ON f.user_id = p.author_id
+														 WHERE u.user_id = ? OR f.following_id = ?;`, userID, userID)
+	
+	if err != nil{
+		return  nil, err
+	}
+
+	var posts []models.Post
+	for query.Next(){
+		var post models.Post
+		if err := query.Scan(&post.Id, &post.Title, &post.Content, &post.AuthorID, &post.Likes, &post.CreatedAt, &post.AuthorUser); err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
