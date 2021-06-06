@@ -68,7 +68,7 @@ func (p Posts) GetByID(postID int64) (models.Post, error) {
 }
 
 //GetPosts ... busca os seus pots e das pessaos que a pessoa segue
-func (p Posts) GetPosts(userID int64) ([]models.Post, error){
+func (p Posts) GetPosts(userID int64) ([]models.Post, error) {
 	query, err := p.db.Query(`SELECT p.post_id, p.title, p.content, p.author_id, p.likes, p.created_at, u.login 
 														FROM tb_posts as p
 															INNER JOIN tb_users as u
@@ -77,13 +77,13 @@ func (p Posts) GetPosts(userID int64) ([]models.Post, error){
 																ON f.user_id = p.author_id OR f.following_id = p.author_id
 														 WHERE u.user_id = ? OR u.user_id = f.user_id
 														 ORDER BY p.created_at DESC;`, userID)
-	
-	if err != nil{
-		return  nil, err
+
+	if err != nil {
+		return nil, err
 	}
 
 	var posts []models.Post
-	for query.Next(){
+	for query.Next() {
 		var post models.Post
 		if err := query.Scan(&post.Id, &post.Title, &post.Content, &post.AuthorID, &post.Likes, &post.CreatedAt, &post.AuthorUser); err != nil {
 			return nil, err
@@ -93,4 +93,19 @@ func (p Posts) GetPosts(userID int64) ([]models.Post, error){
 	}
 
 	return posts, nil
+}
+
+//Update ... atualiza dados de uma publicação
+func (p Posts) Update(postID int64, post models.Post) error {
+	stm, err := p.db.Prepare("UPDATE set title = ?, content = ? WHERE post_id = ? ")
+	if err != nil {
+		return nil
+	}
+	defer stm.Close()
+
+	if _, err := stm.Exec(post.Title, post.Content, postID); err != nil {
+		return err
+	}
+
+	return nil
 }
