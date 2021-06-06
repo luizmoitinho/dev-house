@@ -97,7 +97,7 @@ func (p Posts) GetPosts(userID int64) ([]models.Post, error) {
 
 //Update ... atualiza dados de uma publicação
 func (p Posts) Update(postID int64, post models.Post) error {
-	stm, err := p.db.Prepare("UPDATE set title = ?, content = ? WHERE post_id = ? ")
+	stm, err := p.db.Prepare("UPDATE tb_posts set title = ?, content = ? WHERE post_id = ? ")
 	if err != nil {
 		return nil
 	}
@@ -108,4 +108,18 @@ func (p Posts) Update(postID int64, post models.Post) error {
 	}
 
 	return nil
+}
+
+func (p Posts) Delete(postID int64) error {
+	stm, err := p.db.Prepare("DELETE FROM tb_posts WHERE post_id = ?")
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err := stm.Exec(postID); err != nil {
+		return err
+	}
+	return nil
+
 }

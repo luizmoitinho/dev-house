@@ -8,6 +8,7 @@ import (
 	"api-dev-house/src/responses"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -82,6 +83,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
+	fmt.Println(posts)
 
 	responses.JSON(w, http.StatusOK, posts)
 
@@ -174,4 +176,44 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 //DeletePost ... deleta uma publicação
-func DeletePost(w http.ResponseWriter, r *http.Request) {}
+func DeletePost(w http.ResponseWriter, r *http.Request) {
+	userID, err := authentication.ExtractUserId(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	postID, err := strconv.ParseInt(params["id"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewRepositoryPosts(db)
+	post, err := repository.GetByID(postID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if userID != post.AuthorID {
+		responses.Error(w, http.StatusForbidden, errors.New("não é possivel remover publicações de terceiros"))
+		return
+	}
+
+	if err := repository.Delete(postID); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+
+}
